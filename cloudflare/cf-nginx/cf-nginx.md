@@ -1,0 +1,5 @@
+# 使用CloudFlare Worker 反向代理你的网站
+
+```
+export default{fetch:async(e,t)=>handleRequest(e,t)};async function handleRequest(e,t){const s=t.TARGET_DOMAIN,n=t.SPECIFIC_PATH,a=t.TARGET_PROTOCOL||"https",r=t.REDIRECT_OPTION,o=t.REDIRECT_DOMAIN,h=t.CUSTOM_404_PAGE,u=t.REMOTE_404_URL,d=new URL(e.url);if(d.pathname.startsWith(n)){const t=`${a}://${s}${d.pathname.slice(n.length)}${d.search}`,r=new Request(t,{method:e.method,headers:e.headers,body:e.body,redirect:"follow"}),o=await fetch(r),h=new Headers(o.headers);return h.delete("location"),new Response(o.body,{status:o.status,statusText:o.statusText,headers:h})}if(r){const t=new URL(e.url);return t.hostname=o,Response.redirect(t.toString(),302)}if(h)return new Response(h,{status:404,headers:{"Content-Type":"text/html"}});if(!u)return new Response("404 Not Found",{status:404});try{const e=await fetch(u),t=await e.text();return new Response(t,{status:404,headers:{"Content-Type":"text/html"}})}catch(e){return new Response("404 Not Found",{status:404})}}                                                                                          
+```
