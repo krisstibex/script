@@ -33,8 +33,16 @@ if [ "$1" == "reset" ]; then
     exit 0
 fi
 
-apt update
-apt install tor obfs4proxy -y
+echo "############################################################"
+echo "   ___  _                               _____          "
+echo "  / _ \| |__        _ __ ___  _   _    |_   _|__  _ __ "
+echo " | | | | '_ \ _____| '_ ` _ \| | | |_____| |/ _ \| '__|"
+echo " | |_| | | | |_____| | | | | | |_| |_____| | (_) | |   "
+echo "  \___/|_| |_|     |_| |_| |_|\__, |     |_|\___/|_|   "
+echo "                              |___/                    "
+echo "############################################################"
+apt update > /dev/null 2>&1
+apt install tor obfs4proxy -y  > /dev/null 2>&1
 sudo bash -c 'echo -e "Log notice file /var/log/tor/notices.log\nRunAsDaemon 1\nORPort auto\nExitpolicy reject *:*\nBridgeRelay 1\nServerTransportPlugin obfs4 exec /usr/bin/obfs4proxy\nServerTransportListenAddr obfs4 [::]:8081\nExtORPort auto\nPublishServerDescriptor 0\nNickname ohmytor\nRelayBandwidthRate 50 MB\nRelayBandwidthBurst 200 MB" > /etc/tor/torrc'
 sed -i "s/ServerTransportListenAddr obfs4 \[::\]:[0-9]\+/ServerTransportListenAddr obfs4 [::]:$((RANDOM % 55536 + 10000))/" /etc/tor/torrc
 systemctl restart tor
