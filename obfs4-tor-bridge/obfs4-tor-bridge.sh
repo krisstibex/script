@@ -8,7 +8,7 @@ systemctl restart tor
 FINGERPRINT=$(sudo cat /var/lib/tor/fingerprint | awk '{print $2}')
 IP_ADDRESS=$(curl -4 -s ip.sb)
 PORT=$(grep -Po '(?<=ServerTransportListenAddr obfs4 \[::\]:)\d+' /etc/tor/torrc)
-BRIDGE_LINE=$(sudo cat /var/lib/tor/pt_state/obfs4_bridgeline.txt | grep "^Bridge" | sed "s/<IP ADDRESS>/${IP_ADDRESS}/" | sed "s/<PORT>/${PORT}/" | sed "s/<FINGERPRINT>/${FINGERPRINT}/")
+BRIDGE_LINE=$(sudo cat /var/lib/tor/pt_state/obfs4_bridgeline.txt | grep '^Bridge obfs4' | sed -e 's/^Bridge //' -e "s/<IP ADDRESS>/${IP_ADDRESS}/" -e "s/<PORT>/${PORT}/" -e "s/<FINGERPRINT>/${FINGERPRINT}/")
 
 echo "Your obfs4 bridge configuration:"
 echo
