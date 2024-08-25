@@ -145,6 +145,8 @@ EOL
 install_node() {
     curl -fsSL https://deb.nodesource.com/setup_20.x | sudo bash -
     sudo apt-get install -y nodejs
+    npm install -g npm@latest
+    node -v && npm -v
 }
 
 if [ $# -eq 0 ]; then
