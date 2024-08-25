@@ -41,19 +41,6 @@ show_help() {
     echo "  bash script.sh node"
 }
 
-read_option() {
-    local choice="$1"
-    case $choice in
-        1) install_update_substore ;;
-        2) setup_certificate "$2" ;;
-        3) install_service "$2" ;;
-        4) install_node ;;
-        5) exit 0 ;;
-        -h|-help) show_help ;;
-        *) echo "无效选择" && show_help && exit 1
-    esac
-}
-
 install_update_substore() {
     rm -f sub-store.bundle.js
     rm -rf frontend
@@ -167,12 +154,15 @@ if [ $# -eq 0 ]; then
         read_option "$choice"
     done
 else
-    case $1 in
-        install|update) read_option "$1" ;;
-        cert) shift; read_option "cert" "$1" ;;
-        service) shift; read_option "service" "$1" ;;
-        node) install_node ;;
-        -h|-help) show_help ;;
-        *) echo "无效选项 $1" && show_help && exit 1 ;;
-    esac
+    while [[ "$#" -gt 0 ]]; do
+        case $1 in
+            install|update) read_option "$1"; exit 0 ;;
+            cert) shift; read_option "cert" "$1"; exit 0 ;;
+            service) shift; read_option "service" "$1"; exit 0 ;;
+            node) install_node; exit 0 ;;
+            -h|-help) show_help; exit 0 ;;
+            *) echo "无效选项 $1" && show_help && exit 1 ;;
+        esac
+        shift
+    done
 fi
