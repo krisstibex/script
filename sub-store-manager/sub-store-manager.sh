@@ -1,6 +1,8 @@
 #!/bin/bash
 
 TARGET_DIR="/root/sub-store"
+DOMAIN=""
+API_PATH=""
 
 if [ ! -d "$TARGET_DIR" ]; then
     mkdir -p "$TARGET_DIR"
@@ -8,15 +10,15 @@ fi
 
 cd "$TARGET_DIR" || { echo "无法切换到目录 $TARGET_DIR"; exit 1; }
 
-# ASCII Art
-echo "            _                           "
-echo "  ___ _   _| |__  _ __ ___   __ _ _ __  "
-echo " / __| | | | '_ \| '_ \` _ \ / _\` | '_ \ "
-echo " \__ \ |_| | |_) | | | | | | (_| | | | |"
-echo " |___/\__,_|_.__/|_| |_| |_|\__,_|_| |_|"
-echo "                                        "
-
 show_menu() {
+    printf "%s\n" \
+"            _                           " \
+"  ___ _   _| |__  _ __ ___   __ _ _ __  " \
+" / __| | | | '_ \| '_ \` _ \ / _\` | '_ \ " \
+" \__ \ |_| | |_) | | | | | | (_| | | | |" \
+" |___/\__,_|_.__/|_| |_| |_|\__,_|_| |_|" \
+"                                        "
+    echo ""
     echo "请选择一个选项:"
     echo "1. 安装或更新 Sub-Store"
     echo "2. 申请证书并配置反代"
@@ -51,9 +53,8 @@ install_update_substore() {
 }
 
 setup_certificate() {
-    local domain="$1"
-    if [ -z "$domain" ]; then
-        read -p "你的域名是什么: " domain
+    if [ -z "$DOMAIN" ]; then
+        read -p "你的域名是什么: " DOMAIN
     fi
 
     apt-get update
@@ -61,28 +62,28 @@ setup_certificate() {
 
     RANDOM_STR=$(openssl rand -base64 6 | tr -dc 'a-zA-Z0-9' | cut -c1-8)
     EMAIL="${RANDOM_STR}@gmail.com"
-    certbot --nginx -d "$domain" --email "$EMAIL" --agree-tos --no-eff-email > /dev/null 2>&1
+    certbot --nginx -d "$DOMAIN" --email "$EMAIL" --agree-tos --no-eff-email > /dev/null 2>&1
 
     cat > /etc/nginx/sites-enabled/default <<EOL
 server {
 
-    if (\$host = $domain) {
+    if (\$host = $DOMAIN) {
         return 301 https://\$host\$request_uri;
     }
 
     listen 80 ;
     listen [::]:80 ;
-    server_name $domain;
+    server_name $DOMAIN;
     return 404;
 }
 
 server {
   listen 443 ssl http2;
   listen [::]:443 ssl http2;
-  server_name $domain;
+  server_name $DOMAIN;
 
-  ssl_certificate /etc/letsencrypt/live/$domain/fullchain.pem;
-  ssl_certificate_key /etc/letsencrypt/live/$domain/privkey.pem;
+  ssl_certificate /etc/letsencrypt/live/$DOMAIN/fullchain.pem;
+  ssl_certificate_key /etc/letsencrypt/live/$DOMAIN/privkey.pem;
 
   location / {
     proxy_pass http://127.0.0.1:3001;
@@ -98,11 +99,10 @@ EOL
 }
 
 install_service() {
-    local api_path="$1"
-    if [ -z "$api_path" ]; then
-        read -p "请输入 API 的路径 (留空以生成随机路径): " api_path
-        if [ -z "$api_path" ]; then
-            api_path=$(uuidgen)
+    if [ -z "$API_PATH" ]; then
+        read -p "请输入 API 的路径 (留空以生成随机路径): " API_PATH
+        if [ -z "$API_PATH" ]; then
+            API_PATH=$(openssl rand -base64 12 | tr -dc 'a-zA-Z0-9' | cut -c1-16)
         fi
     fi
 
@@ -115,7 +115,7 @@ Wants=network-online.target systemd-networkd-wait-online.service
 [Service]
 LimitNOFILE=32767
 Type=simple
-Environment="SUB_STORE_FRONTEND_BACKEND_PATH=/$api_path"
+Environment="SUB_STORE_FRONTEND_BACKEND_PATH=/$API_PATH"
 Environment="SUB_STORE_BACKEND_CRON=0 0 * * *"
 Environment="SUB_STORE_FRONTEND_PATH=/root/sub-store/frontend"
 Environment="SUB_STORE_FRONTEND_HOST=0.0.0.0"
@@ -151,18 +151,34 @@ if [ $# -eq 0 ]; then
     while true; do
         show_menu
         read -p "请输入你的选择 (1-5): " choice
-        read_option "$choice"
+        case $choice in
+            1) install_update_substore ;;
+            2) setup_certificate ;;
+            3) install_service ;;
+            4) install_node ;;
+            5) exit 0 ;;
+            *) echo "无效选择" ;;
+        esac
     done
 else
-    while [[ "$#" -gt 0 ]]; do
-        case $1 in
-            install|update) read_option "$1"; exit 0 ;;
-            cert) shift; read_option "cert" "$1"; exit 0 ;;
-            service) shift; read_option "service" "$1"; exit 0 ;;
-            node) install_node; exit 0 ;;
-            -h|-help) show_help; exit 0 ;;
-            *) echo "无效选项 $1" && show_help && exit 1 ;;
-        esac
-        shift
-    done
+    case $1 in
+        install|update) install_update_substore ;;
+        cert) 
+            shift
+            if [ "$1" == "-d" ]; then
+                DOMAIN="$2"
+            fi
+            setup_certificate 
+            ;;
+        service) 
+            shift
+            if [ "$1" == "-p" ]; then
+                API_PATH="$2"
+            fi
+            install_service 
+            ;;
+        node) install_node ;;
+        -h|-help|help) show_help ;;
+        *) echo "无效选项 $1"; show_help ;;
+    esac
 fi
