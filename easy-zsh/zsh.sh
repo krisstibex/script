@@ -1,3 +1,3 @@
-# /bin/zsh
+#!/bin/zsh
 
 git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k && git clone https://github.com/zsh-users/zsh-syntax-highlighting ~/.oh-my-zsh/plugins/zsh-syntax-highlighting && git clone https://github.com/zsh-users/zsh-autosuggestions ~/.oh-my-zsh/plugins/zsh-autosuggestions && sed -i '/^plugins=(/c\plugins=(\n    colored-man-pages\n    colorize\n    zsh-autosuggestions\n    zsh-syntax-highlighting\n    git\n    sudo\n    vi-mode\n    z\n)' ~/.zshrc && sed -i '/^ZSH_THEME=/c\ZSH_THEME="powerlevel10k/powerlevel10k"' ~/.zshrc && source ~/.zshrc
