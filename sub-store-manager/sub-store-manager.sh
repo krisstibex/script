@@ -102,7 +102,7 @@ install_service() {
     if [ -z "$API_PATH" ]; then
         read -p "请输入 API 的路径 (留空以生成随机路径): " API_PATH
         if [ -z "$API_PATH" ]; then
-            API_PATH=$(uuidgen)
+            API_PATH=$(openssl rand -base64 12 | tr -dc 'a-zA-Z0-9' | cut -c1-16)
         fi
     fi
 
