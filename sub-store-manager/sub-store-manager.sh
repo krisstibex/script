@@ -18,7 +18,8 @@ show_menu() {
     echo "1. 安装或更新 Sub-Store"
     echo "2. 申请证书并配置反代"
     echo "3. 安装服务"
-    echo "4. 退出"
+    echo "4. 安装 Node.js 环境"
+    echo "5. 退出"
 }
 
 # 帮助函数
@@ -28,12 +29,14 @@ show_help() {
     echo "  install, update         安装或更新 Sub-Store"
     echo "  cert [-d 域名]          申请证书并配置反代 (可选: 传入域名)"
     echo "  service [-p 路径]       安装服务 (可选: 传入路径)"
+    echo "  node                    安装 Node.js 环境"
     echo "  -h, -help               显示此帮助信息"
     echo ""
     echo "示例:"
     echo "  bash sub-store-manager.sh install"
     echo "  bash sub-store-manager.sh -d example.com"
     echo "  bash sub-store-manager.sh service -p /my/api/path"
+    echo "  bash sub-store-manager.sh node"
 }
 
 # 读取用户输入或传入参数
@@ -43,10 +46,12 @@ read_option() {
         install|update) install_update_substore ;;
         cert) setup_certificate "$2" ;;
         service) install_service "$2" ;;
+        node) install_node ;;
         1) install_update_substore ;;
         2) setup_certificate ;;
         3) install_service ;;
-        4) exit 0 ;;
+        4) install_node ;;
+        5) exit 0 ;;
         -h|-help) show_help ;;
         *) echo "无效选择" && show_help && exit 1
     esac
@@ -165,12 +170,20 @@ EOL
     echo "服务安装完成"
 }
 
+# 安装 Node.js 环境的函数
+install_node() {
+    echo "正在安装 Node.js 环境..."
+    curl -fsSL https://deb.nodesource.com/setup_20.x | sudo bash -
+    sudo apt-get install -y nodejs
+    echo "Node.js 安装完成"
+}
+
 # 检查是否传入参数
 if [ $# -eq 0 ]; then
     # 没有传入参数时显示菜单
     while true; do
         show_menu
-        read -p "请输入你的选择 (1-4): " choice
+        read -p "请输入你的选择 (1-5): " choice
         read_option "$choice"
     done
 else
@@ -180,6 +193,7 @@ else
             install|update) read_option "$1"; exit 0 ;;
             cert) shift; read_option "cert" "$1"; exit 0 ;;
             service) shift; read_option "service" "$1"; exit 0 ;;
+            node) read_option "node"; exit 0 ;;
             -h|-help) show_help; exit 0 ;;
             *) echo "无效选项 $1"; show_help; exit 1 ;;
         esac
