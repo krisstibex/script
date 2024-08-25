@@ -6,7 +6,7 @@ if [ ! -d "$TARGET_DIR" ]; then
     mkdir -p "$TARGET_DIR"
 fi
 
-cd "$TARGET_DIR" || { echo "Unable to change directory to $TARGET_DIR"; exit 1; }
+cd "$TARGET_DIR" || { echo "无法切换到目录 $TARGET_DIR"; exit 1; }
 
 # ASCII Art
 echo "            _                           "
@@ -17,23 +17,40 @@ echo " |___/\__,_|_.__/|_| |_| |_|\__,_|_| |_|"
 echo "                                        "
 
 show_menu() {
-    echo "Select an option:"
-    echo "1. Install or Update Sub-Store"
-    echo "2. Request Certificate and Setup Reverse Proxy"
-    echo "3. Install Service"
-    echo "4. Install Node.js Environment"
-    echo "5. Exit"
+    echo "请选择一个选项:"
+    echo "1. 安装或更新 Sub-Store"
+    echo "2. 申请证书并配置反代"
+    echo "3. 安装服务"
+    echo "4. 安装 Node.js 环境"
+    echo "5. 退出"
+}
+
+show_help() {
+    echo "用法: script.sh [选项] [参数]"
+    echo "选项:"
+    echo "  install, update         安装或更新 Sub-Store"
+    echo "  cert [-d 域名]          申请证书并配置反代 (可选: 传入域名)"
+    echo "  service [-p 路径]       安装服务 (可选: 传入路径)"
+    echo "  node                    安装 Node.js 环境"
+    echo "  -h, -help               显示此帮助信息"
+    echo ""
+    echo "示例:"
+    echo "  bash script.sh install"
+    echo "  bash script.sh cert -d example.com"
+    echo "  bash script.sh service -p /my/api/path"
+    echo "  bash script.sh node"
 }
 
 read_option() {
     local choice="$1"
     case $choice in
         1) install_update_substore ;;
-        2) setup_certificate ;;
-        3) install_service ;;
+        2) setup_certificate "$2" ;;
+        3) install_service "$2" ;;
         4) install_node ;;
         5) exit 0 ;;
-        *) echo "Invalid choice" && exit 1
+        -h|-help) show_help ;;
+        *) echo "无效选择" && show_help && exit 1
     esac
 }
 
@@ -49,7 +66,7 @@ install_update_substore() {
 setup_certificate() {
     local domain="$1"
     if [ -z "$domain" ]; then
-        read -p "Domain: " domain
+        read -p "你的域名是什么: " domain
     fi
 
     apt-get update
@@ -96,7 +113,7 @@ EOL
 install_service() {
     local api_path="$1"
     if [ -z "$api_path" ]; then
-        read -p "Enter API path (leave blank for random): " api_path
+        read -p "请输入 API 的路径 (留空以生成随机路径): " api_path
         if [ -z "$api_path" ]; then
             api_path=$(uuidgen)
         fi
@@ -146,16 +163,16 @@ install_node() {
 if [ $# -eq 0 ]; then
     while true; do
         show_menu
-        read -p "Enter your choice (1-5): " choice
+        read -p "请输入你的选择 (1-5): " choice
         read_option "$choice"
     done
 else
     case $1 in
-        install|update) install_update_substore ;;
-        cert) shift; setup_certificate "$1" ;;
-        service) shift; install_service "$1" ;;
+        install|update) read_option "$1" ;;
+        cert) shift; read_option "cert" "$1" ;;
+        service) shift; read_option "service" "$1" ;;
         node) install_node ;;
         -h|-help) show_help ;;
-        *) echo "Invalid option $1" && exit 1 ;;
+        *) echo "无效选项 $1" && show_help && exit 1 ;;
     esac
 fi
