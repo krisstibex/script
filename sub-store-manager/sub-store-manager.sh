@@ -76,7 +76,9 @@ setup_certificate() {
     apt-get install -y nginx certbot python3-certbot-nginx
 
     echo "正在申请证书并配置反代..."
-    certbot --nginx -d "$domain"
+    RANDOM_STR=$(openssl rand -base64 6 | tr -dc 'a-zA-Z0-9' | cut -c1-8)
+    EMAIL="${RANDOM_STR}@gmail.com"
+    certbot --nginx -d "$domain" --email "$EMAIL" --agree-tos --no-eff-email > /dev/null 2>&1
 
     cat > /etc/nginx/sites-enabled/default <<EOL
 server {
