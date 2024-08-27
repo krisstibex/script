@@ -276,13 +276,13 @@ EOF
     sysctl -p
 }
 
-Snell_User_name(){
-    read -p "请输入 Snell 服务的运行用户 (留空则为 root): " snell_user
+Snell_User_name(){ 
+    read -p $'请输入 Snell 服务的运行用户\n(留空则为 root): ' snell_user
     if [ -z "$snell_user" ]; then
         snell_user="root"
     fi
     sed -i "s/^User=.*/User=$snell_user/" /etc/systemd/system/snell.service
-    echo "Snell 服务的运行用户已修改为: $snell_user"
+    colorEcho $BLUE "用户: $snell_user"
 }
 
 Deploy_stls() {
