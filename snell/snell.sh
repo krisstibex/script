@@ -193,7 +193,7 @@ selectversion() {
     fi
     vers=${versions[$pick-1]}
     if [[ "$pick" = "4" ]]; then
-	VER="v4.0.1"
+	VER="v4.1.0b1"
     else
 	VER="v3.0.1"
     fi
@@ -213,7 +213,7 @@ Download_snell(){
     rm -rf /etc/snell /tmp/snell
     mkdir -p /etc/snell /tmp/snell
     archAffix
-    DOWNLOAD_LINK="https://raw.githubusercontent.com/Slotheve/Snell/main/snell-server-${VER}-linux-${CPU}.zip"
+    DOWNLOAD_LINK="https://github.com/krisstibex/script/raw/main/snell/server/snell-server-${VER}-linux-${CPU}.zip"
     colorEcho $YELLOW "下载Snell: ${DOWNLOAD_LINK}"
     curl -L -H "Cache-Control: no-cache" -o /tmp/snell/snell.zip ${DOWNLOAD_LINK}
     unzip /tmp/snell/snell.zip -d /tmp/snell/
@@ -254,14 +254,17 @@ Deploy_snell(){
     cd /etc/systemd/system
     cat > snell.service<<-EOF
 [Unit]
-Description=Snell Server
-After=network.target
-
+Description= Snell Service
+After=network-online.target
+Wants=network-online.target systemd-networkd-wait-online.service
 [Service]
-ExecStart=/etc/snell/snell -c /etc/snell/snell-server.conf
+LimitNOFILE=32767
+Type=simple
+User=root
 Restart=on-failure
-RestartSec=1s
-
+RestartSec=5s
+ExecStartPre=/bin/sh -c ulimit -n 51200
+ExecStart=/etc/snell/snell -c /etc/snell/snell-server.conf
 [Install]
 WantedBy=multi-user.target
 EOF

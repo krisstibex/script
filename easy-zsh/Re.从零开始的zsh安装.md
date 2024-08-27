@@ -11,7 +11,7 @@ sh -c "$(wget -O- https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools
 对于设置 你可以通过搜索引擎查看教材来设置你的zsh，如果你不想动手，可以试试看我的设置
 ### zsh&oh-my-zsh设置
 ```
-zsh <( curl -fsSL https://github.com/krisstibex/script/blob/main/easy-zsh/zsh.sh)
+zsh <( curl -fsSL https://github.com/krisstibex/script/raw/main/easy-zsh/zsh.sh)
 ```
 ### powerlevel10k(zsh主题)设置
 ynn2122112y2y
