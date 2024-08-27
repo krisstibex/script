@@ -276,7 +276,6 @@ EOF
 }
 
 Snell_User_name(){
-    #!/bin/bash
     read -p "请输入 Snell 服务的运行用户 (留空则为 root): " snell_user
     if [ -z "$snell_user" ]; then
         snell_user="root"
