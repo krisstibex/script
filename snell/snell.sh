@@ -407,7 +407,7 @@ Set_tfo(){
 }
 Set_dns() {
     if [ -z "${DNS}" ]; then
-        read -p "请输入自定义的 DNS 地址\n(默认1.1.1.1, 8.8.8.8, 回车): " DNS
+        read -p $'请输入自定义的 DNS 地址\n(默认1.1.1.1, 8.8.8.8, 回车): ' DNS
         if [ -z "${DNS}" ]; then
             DNS="1.1.1.1, 8.8.8.8"
         fi
