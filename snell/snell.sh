@@ -407,7 +407,7 @@ Set_tfo(){
 }
 Set_dns() {
     if [ -z "${DNS}" ]; then
-        read -p "请输入自定义的 DNS 地址 (多个地址请用英文逗号分隔 留空则设置为 1.1.1.1, 8.8.8.8): " DNS
+        read -p "请输入自定义的 DNS 地址\n(默认1.1.1.1, 8.8.8.8, 回车): " DNS
         if [ -z "${DNS}" ]; then
             DNS="1.1.1.1, 8.8.8.8"
         fi
@@ -624,6 +624,7 @@ outputSnell() {
     echo -e "   ${BLUE}IPV6：${PLAIN} ${RED}${ipv6}${PLAIN}"
     echo -e "   ${BLUE}混淆(OBFS)：${PLAIN} ${RED}${obfs}${PLAIN}"
     echo -e "   ${BLUE}TCP记忆(TFO)：${PLAIN} ${RED}${tfo}${PLAIN}"
+    echo -e "   ${BLUE}dns地址(VER)：${PLAIN} ${RED}${DNS}${PLAIN}"
     echo -e "   ${BLUE}Snell版本(VER)：${PLAIN} ${RED}${ver}${PLAIN}"
 }
 
