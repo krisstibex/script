@@ -240,6 +240,7 @@ Generate_conf(){
     show_psk
     Set_obfs
     Set_tfo
+    Set_dns
 }
 
 Generate_stls() {
@@ -276,6 +277,7 @@ EOF
 }
 
 Snell_User_name(){
+    #!/bin/bash
     read -p "请输入 Snell 服务的运行用户 (留空则为 root): " snell_user
     if [ -z "$snell_user" ]; then
         snell_user="root"
@@ -404,6 +406,14 @@ Set_tfo(){
 	Set_tfo
     fi
 }
+Set_dns() {
+    if [ -z "${DNS}" ]; then
+        read -p "请输入自定义的 DNS 地址 (多个地址请用英文逗号分隔 留空则设置为 1.1.1.1, 8.8.8.8): " DNS
+        if [ -z "${DNS}" ]; then
+            DNS="1.1.1.1, 8.8.8.8"
+        fi
+    fi
+}
 
 Decide_sv6() {
     if [[ "${V6}" = "true" ]]; then
@@ -482,6 +492,7 @@ psk = ${PSK}
 ipv6 = ${V6}
 obfs = ${OBFS}
 tfo = ${TFO}
+dns = ${DNS}
 # ${vers}
 EOF
 }
