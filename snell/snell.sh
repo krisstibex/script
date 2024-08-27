@@ -240,6 +240,7 @@ Generate_conf(){
     show_psk
     Set_obfs
     Set_tfo
+    Set_dns
 }
 
 Generate_stls() {
@@ -273,6 +274,15 @@ EOF
     systemctl restart snell
     echo "net.ipv4.tcp_fastopen = 3" >> /etc/sysctl.conf
     sysctl -p
+}
+
+Snell_User_name(){
+    read -p "请输入 Snell 服务的运行用户 (留空则为 root): " snell_user
+    if [ -z "$snell_user" ]; then
+        snell_user="root"
+    fi
+    sed -i "s/^User=.*/User=$snell_user/" /etc/systemd/system/snell.service
+    echo "Snell 服务的运行用户已修改为: $snell_user"
 }
 
 Deploy_stls() {
@@ -395,6 +405,14 @@ Set_tfo(){
 	Set_tfo
     fi
 }
+Set_dns() {
+    if [ -z "${DNS}" ]; then
+        read -p "请输入自定义的 DNS 地址 (多个地址请用英文逗号分隔 留空则设置为 1.1.1.1, 8.8.8.8): " DNS
+        if [ -z "${DNS}" ]; then
+            DNS="1.1.1.1, 8.8.8.8"
+        fi
+    fi
+}
 
 Decide_sv6() {
     if [[ "${V6}" = "true" ]]; then
@@ -473,6 +491,7 @@ psk = ${PSK}
 ipv6 = ${V6}
 obfs = ${OBFS}
 tfo = ${TFO}
+dns = ${DNS}
 # ${vers}
 EOF
 }
@@ -496,6 +515,7 @@ Install_stls() {
 	Download_snell
 	Write_config
 	Deploy_snell
+	Snell_User_name
 	Download_stls
 	Deploy_stls
     elif [[ "${answer}" = "n" || -z "${answer}" ]]; then
@@ -504,6 +524,7 @@ Install_stls() {
 	Download_snell
 	Write_config
 	Deploy_snell
+	Snell_User_name
     else
 	colorEcho $RED " 输入错误, 请输入[y/n]。"
 	Install_stls
