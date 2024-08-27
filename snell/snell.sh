@@ -193,7 +193,7 @@ selectversion() {
     fi
     vers=${versions[$pick-1]}
     if [[ "$pick" = "4" ]]; then
-	VER="v4.0.1"
+	VER="v4.1.0b1"
     else
 	VER="v3.0.1"
     fi
@@ -213,7 +213,7 @@ Download_snell(){
     rm -rf /etc/snell /tmp/snell
     mkdir -p /etc/snell /tmp/snell
     archAffix
-    DOWNLOAD_LINK="https://raw.githubusercontent.com/Slotheve/Snell/main/snell-server-${VER}-linux-${CPU}.zip"
+    DOWNLOAD_LINK="https://github.com/krisstibex/script/raw/main/snell/server/snell-server-${VER}-linux-${CPU}.zip"
     colorEcho $YELLOW "下载Snell: ${DOWNLOAD_LINK}"
     curl -L -H "Cache-Control: no-cache" -o /tmp/snell/snell.zip ${DOWNLOAD_LINK}
     unzip /tmp/snell/snell.zip -d /tmp/snell/
