@@ -254,14 +254,17 @@ Deploy_snell(){
     cd /etc/systemd/system
     cat > snell.service<<-EOF
 [Unit]
-Description=Snell Server
-After=network.target
-
+Description= Snell Service
+After=network-online.target
+Wants=network-online.target systemd-networkd-wait-online.service
 [Service]
-ExecStart=/etc/snell/snell -c /etc/snell/snell-server.conf
+LimitNOFILE=32767
+Type=simple
+User=root
 Restart=on-failure
-RestartSec=1s
-
+RestartSec=5s
+ExecStartPre=/bin/sh -c ulimit -n 51200
+ExecStart=/etc/snell/snell -c /etc/snell/snell-server.conf
 [Install]
 WantedBy=multi-user.target
 EOF
