@@ -412,6 +412,7 @@ Set_dns() {
             DNS="1.1.1.1, 8.8.8.8"
         fi
     fi
+    colorEcho $BLUE "DNS: ${DNS}"
 }
 
 Decide_sv6() {
