@@ -625,7 +625,7 @@ outputSnell() {
     echo -e "   ${BLUE}IPV6：${PLAIN} ${RED}${ipv6}${PLAIN}"
     echo -e "   ${BLUE}混淆(OBFS)：${PLAIN} ${RED}${obfs}${PLAIN}"
     echo -e "   ${BLUE}TCP记忆(TFO)：${PLAIN} ${RED}${tfo}${PLAIN}"
-    echo -e "   ${BLUE}dns地址(VER)：${PLAIN} ${RED}${dns}${PLAIN}"
+    echo -e "   ${BLUE}dns地址(DNS)：${PLAIN} ${RED}${dns}${PLAIN}"
     echo -e "   ${BLUE}Snell版本(VER)：${PLAIN} ${RED}${ver}${PLAIN}"
 }
 
