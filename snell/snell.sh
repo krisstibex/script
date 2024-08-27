@@ -275,6 +275,16 @@ EOF
     sysctl -p
 }
 
+Snell_User_name(){
+    #!/bin/bash
+    read -p "请输入 Snell 服务的运行用户 (留空则为 root): " snell_user
+    if [ -z "$snell_user" ]; then
+        snell_user="root"
+    fi
+    sed -i "s/^User=.*/User=$snell_user/" /etc/systemd/system/snell.service
+    echo "Snell 服务的运行用户已修改为: $snell_user"
+}
+
 Deploy_stls() {
     cd /etc/systemd/system
     cat > shadowtls.service<<-EOF
@@ -496,6 +506,7 @@ Install_stls() {
 	Download_snell
 	Write_config
 	Deploy_snell
+	Snell_User_name
 	Download_stls
 	Deploy_stls
     elif [[ "${answer}" = "n" || -z "${answer}" ]]; then
@@ -504,6 +515,7 @@ Install_stls() {
 	Download_snell
 	Write_config
 	Deploy_snell
+	Snell_User_name
     else
 	colorEcho $RED " 输入错误, 请输入[y/n]。"
 	Install_stls
