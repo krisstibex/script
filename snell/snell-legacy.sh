@@ -193,7 +193,7 @@ selectversion() {
     fi
     vers=${versions[$pick-1]}
     if [[ "$pick" = "4" ]]; then
-	VER="v4.1.0b2"
+	VER="v4.1.0b1"
     else
 	VER="v3.0.1"
     fi
@@ -240,7 +240,6 @@ Generate_conf(){
     show_psk
     Set_obfs
     Set_tfo
-    Set_dns
 }
 
 Generate_stls() {
@@ -255,17 +254,14 @@ Deploy_snell(){
     cd /etc/systemd/system
     cat > snell.service<<-EOF
 [Unit]
-Description= Snell Service
-After=network-online.target
-Wants=network-online.target systemd-networkd-wait-online.service
+Description=Snell Server
+After=network.target
+
 [Service]
-LimitNOFILE=32767
-Type=simple
-User=root
-Restart=on-failure
-RestartSec=5s
-ExecStartPre=/bin/sh -c ulimit -n 51200
 ExecStart=/etc/snell/snell -c /etc/snell/snell-server.conf
+Restart=on-failure
+RestartSec=1s
+
 [Install]
 WantedBy=multi-user.target
 EOF
@@ -274,15 +270,6 @@ EOF
     systemctl restart snell
     echo "net.ipv4.tcp_fastopen = 3" >> /etc/sysctl.conf
     sysctl -p
-}
-
-Snell_User_name(){ 
-    read -p $'请输入 Snell 服务的运行用户\n(留空则为 root): ' snell_user
-    if [ -z "$snell_user" ]; then
-        snell_user="root"
-    fi
-    sed -i "s/^User=.*/User=$snell_user/" /etc/systemd/system/snell.service
-    colorEcho $BLUE "用户: $snell_user"
 }
 
 Deploy_stls() {
@@ -405,15 +392,6 @@ Set_tfo(){
 	Set_tfo
     fi
 }
-Set_dns() {
-    if [ -z "${DNS}" ]; then
-        read -p $'请输入自定义的 DNS 地址\n(默认1.1.1.1, 8.8.8.8, 回车): ' DNS
-        if [ -z "${DNS}" ]; then
-            DNS="1.1.1.1, 8.8.8.8"
-        fi
-    fi
-    colorEcho $BLUE "DNS: ${DNS}"
-}
 
 Decide_sv6() {
     if [[ "${V6}" = "true" ]]; then
@@ -492,7 +470,6 @@ psk = ${PSK}
 ipv6 = ${V6}
 obfs = ${OBFS}
 tfo = ${TFO}
-dns = ${DNS}
 # ${vers}
 EOF
 }
@@ -516,7 +493,6 @@ Install_stls() {
 	Download_snell
 	Write_config
 	Deploy_snell
-	Snell_User_name
 	Download_stls
 	Deploy_stls
     elif [[ "${answer}" = "n" || -z "${answer}" ]]; then
@@ -525,7 +501,6 @@ Install_stls() {
 	Download_snell
 	Write_config
 	Deploy_snell
-	Snell_User_name
     else
 	colorEcho $RED " 输入错误, 请输入[y/n]。"
 	Install_stls
@@ -604,7 +579,6 @@ GetConfig() {
     obfs=`grep obfs ${snell_conf} | awk -F '= ' '{print $2}'`
     tfo=`grep tfo ${snell_conf} | awk -F '= ' '{print $2}'`
     ver=`grep '#' ${snell_conf} | awk -F '# ' '{print $2}'`
-    dns=`grep 'dns' ${snell_conf} | awk -F '= ' '{print $2}'`
 }
 
 GetConfig_stls() {
@@ -626,7 +600,6 @@ outputSnell() {
     echo -e "   ${BLUE}IPV6：${PLAIN} ${RED}${ipv6}${PLAIN}"
     echo -e "   ${BLUE}混淆(OBFS)：${PLAIN} ${RED}${obfs}${PLAIN}"
     echo -e "   ${BLUE}TCP记忆(TFO)：${PLAIN} ${RED}${tfo}${PLAIN}"
-    echo -e "   ${BLUE}dns地址(DNS)：${PLAIN} ${RED}${dns}${PLAIN}"
     echo -e "   ${BLUE}Snell版本(VER)：${PLAIN} ${RED}${ver}${PLAIN}"
 }
 
