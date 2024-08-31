@@ -1,16 +1,14 @@
 #!/bin/bash
 set -e -o pipefail
 
-# 初始化参数
 OUTPUT_PATH=""
 REPO_URL=""
 BRANCH=""
 REPO_DESC=""
-GOOS="linux"  # 默认为 linux
-WITH_TOR=false  # 默认为不启用 Tor 标签
-INSTALL_NEW_GO=false  # 标志是否使用新方式安装 Go
+GOOS="linux"
+WITH_TOR=false
+INSTALL_NEW_GO=false
 
-# 解析输入参数
 while getopts "o:a:d:" opt; do
   case $opt in
     o) OUTPUT_PATH="$OPTARG";;
@@ -47,23 +45,20 @@ while getopts "o:a:d:" opt; do
           ;;
       esac
       ;;
-    d) GOOS="$OPTARG";;  # 设置GOOS的值
+    d) GOOS="$OPTARG";;
     *) echo "Usage: $0 [-o output_path] [-a option] [-d goos]" >&2; exit 1;;
   esac
 done
 
-# 移除已处理的选项
 shift $((OPTIND -1))
 
-# 处理剩余的参数
 for arg in "$@"; do
   case $arg in
-    tor) WITH_TOR=true;;  # 如果参数包含 tor，则启用 Tor 标签
-    go) INSTALL_NEW_GO=true;;  # 如果参数包含 go，则启用新方式安装 Go
+    tor) WITH_TOR=true;;
+    go) INSTALL_NEW_GO=true;;
   esac
 done
 
-# 如果没有使用 -a 参数，显示菜单
 if [ -z "$REPO_URL" ]; then
   echo "请选择要使用的仓库和分支:"
   echo "1) sing-box 稳定版 (https://github.com/SagerNet/sing-box, 分支: main)"
@@ -125,13 +120,12 @@ case "${ARCH_RAW}" in
     *)          echo "Unsupported architecture: ${ARCH_RAW}"; exit 1;;
 esac
 
-# 安装 Go
 if command -v go >/dev/null 2>&1; then
-    echo "Go 已安装。"
+    echo "Go 已安装"
     go version
 else
     if [ "$INSTALL_NEW_GO" = true ]; then
-        echo "Go 未安装。使用管网安装最新版本..."
+        echo "Go 未安装 正在安装..."
         GO_VERSION="1.23.0"
         wget -q "https://go.dev/dl/go${GO_VERSION}.linux-${ARCH}.tar.gz" -O go.tar.gz
         sudo tar -C /usr/local -xzf go.tar.gz
@@ -163,7 +157,7 @@ else
         source "$CONFIG_FILE"
         rm -f "go.tar.gz"
     else
-        echo "Go 未安装。使用 apt 安装..."
+        echo "Go 未安装 使用 apt 安装..."
         sudo apt update
         sudo apt install -y golang
     fi
@@ -173,13 +167,11 @@ apt install git -y
 git clone "$REPO_URL" /tmp/sing-box && cd /tmp/sing-box
 git checkout "$BRANCH"
 
-# 构建 sing-box
 OUTPUT_FILE="sing-box"
 if [ -n "$OUTPUT_PATH" ]; then
     OUTPUT_FILE="${OUTPUT_PATH%/}/sing-box"
 fi
 
-# 设置构建标签
 TAGS="with_quic with_grpc with_dhcp with_wireguard with_ech with_utls with_reality_server with_acme with_clash_api with_v2ray_api with_gvisor"
 if [ "$WITH_TOR" = true ]; then
     TAGS="$TAGS with_embedded_tor"
@@ -191,13 +183,11 @@ GOOS=${GOOS} GOARCH=${ARCH} go build -ldflags "-X 'github.com/sagernet/sing-box/
 
 chmod +x "$OUTPUT_FILE"
 
-# 如果指定了输出路径，则跳过安装和服务配置
 if [ -n "$OUTPUT_PATH" ]; then
     echo "The sing-box binary has been compiled and saved to $OUTPUT_FILE."
     exit 0
 fi
 
-# 继续安装和配置服务（如果未指定输出路径）
 mkdir /etc/sing-box
 echo "{}" > /etc/sing-box/config.json
 
