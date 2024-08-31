@@ -8,6 +8,7 @@ BRANCH=""
 REPO_DESC=""
 GOOS="linux"  # 默认为 linux
 WITH_TOR=false  # 默认为不启用 Tor 标签
+INSTALL_NEW_GO=false  # 标志是否使用新方式安装 Go
 
 # 解析输入参数
 while getopts "o:a:d:" opt; do
@@ -51,11 +52,14 @@ while getopts "o:a:d:" opt; do
   esac
 done
 
-# 处理额外的参数
-shift $((OPTIND -1))  # 移除已处理的选项
+# 移除已处理的选项
+shift $((OPTIND -1))
+
+# 处理剩余的参数
 for arg in "$@"; do
   case $arg in
     tor) WITH_TOR=true;;  # 如果参数包含 tor，则启用 Tor 标签
+    go) INSTALL_NEW_GO=true;;  # 如果参数包含 go，则启用新方式安装 Go
   esac
 done
 
@@ -121,41 +125,48 @@ case "${ARCH_RAW}" in
     *)          echo "Unsupported architecture: ${ARCH_RAW}"; exit 1;;
 esac
 
+# 安装 Go
 if command -v go >/dev/null 2>&1; then
-    echo "Go is already installed."
+    echo "Go 已安装。"
     go version
 else
-    echo "Go is not installed. Installing Go..."
-    GO_VERSION="1.23.0"
-    wget -q "https://go.dev/dl/go${GO_VERSION}.linux-${ARCH}.tar.gz" -O go.tar.gz
-    sudo tar -C /usr/local -xzf go.tar.gz
-    CURRENT_SHELL=$(basename "$SHELL")
+    if [ "$INSTALL_NEW_GO" = true ]; then
+        echo "Go 未安装。使用管网安装最新版本..."
+        GO_VERSION="1.23.0"
+        wget -q "https://go.dev/dl/go${GO_VERSION}.linux-${ARCH}.tar.gz" -O go.tar.gz
+        sudo tar -C /usr/local -xzf go.tar.gz
+        CURRENT_SHELL=$(basename "$SHELL")
 
-    case "$CURRENT_SHELL" in
-        bash)
-            CONFIG_FILE="$HOME/.bashrc"
-            echo 'export GOROOT=/usr/local/go' >> "$CONFIG_FILE"
-            echo 'export GOPATH=$HOME/go' >> "$CONFIG_FILE"
-            echo 'export PATH=$PATH:$GOROOT/bin:$GOPATH/bin' >> "$CONFIG_FILE"
-            ;;
-        zsh)
-            CONFIG_FILE="$HOME/.zshrc"
-            echo 'export GOROOT=/usr/local/go' >> "$CONFIG_FILE"
-            echo 'export GOPATH=$HOME/go' >> "$CONFIG_FILE"
-            echo 'export PATH=$PATH:$GOROOT/bin:$GOPATH/bin' >> "$CONFIG_FILE"
-            ;;
-        fish)
-            CONFIG_FILE="$HOME/.config/fish/config.fish"
-            echo 'set -x GOROOT /usr/local/go' >> "$CONFIG_FILE"
-            echo 'set -x GOPATH $HOME/go' >> "$CONFIG_FILE"
-            echo 'set -x PATH $PATH $GOROOT/bin $GOPATH/bin' >> "$CONFIG_FILE"
-            ;;
-        *)
-            echo "Unsupported shell: $CURRENT_SHELL"
-            ;;
-    esac
-    source "$CONFIG_FILE"
-    rm -f "go.tar.gz"
+        case "$CURRENT_SHELL" in
+            bash)
+                CONFIG_FILE="$HOME/.bashrc"
+                echo 'export GOROOT=/usr/local/go' >> "$CONFIG_FILE"
+                echo 'export GOPATH=$HOME/go' >> "$CONFIG_FILE"
+                echo 'export PATH=$PATH:$GOROOT/bin:$GOPATH/bin' >> "$CONFIG_FILE"
+                ;;
+            zsh)
+                CONFIG_FILE="$HOME/.zshrc"
+                echo 'export GOROOT=/usr/local/go' >> "$CONFIG_FILE"
+                echo 'export GOPATH=$HOME/go' >> "$CONFIG_FILE"
+                echo 'export PATH=$PATH:$GOROOT/bin:$GOPATH/bin' >> "$CONFIG_FILE"
+                ;;
+            fish)
+                CONFIG_FILE="$HOME/.config/fish/config.fish"
+                echo 'set -x GOROOT /usr/local/go' >> "$CONFIG_FILE"
+                echo 'set -x GOPATH $HOME/go' >> "$CONFIG_FILE"
+                echo 'set -x PATH $PATH $GOROOT/bin $GOPATH/bin' >> "$CONFIG_FILE"
+                ;;
+            *)
+                echo "不支持的 shell: $CURRENT_SHELL"
+                ;;
+        esac
+        source "$CONFIG_FILE"
+        rm -f "go.tar.gz"
+    else
+        echo "Go 未安装。使用 apt 安装..."
+        sudo apt update
+        sudo apt install -y golang
+    fi
 fi
 
 apt install git -y
