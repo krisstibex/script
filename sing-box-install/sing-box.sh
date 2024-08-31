@@ -7,6 +7,7 @@ REPO_URL=""
 BRANCH=""
 REPO_DESC=""
 GOOS="linux"  # 默认为 linux
+WITH_TOR=false  # 默认为不启用 Tor 标签
 
 # 解析输入参数
 while getopts "o:a:d:" opt; do
@@ -47,6 +48,14 @@ while getopts "o:a:d:" opt; do
       ;;
     d) GOOS="$OPTARG";;  # 设置GOOS的值
     *) echo "Usage: $0 [-o output_path] [-a option] [-d goos]" >&2; exit 1;;
+  esac
+done
+
+# 处理额外的参数
+shift $((OPTIND -1))  # 移除已处理的选项
+for arg in "$@"; do
+  case $arg in
+    tor) WITH_TOR=true;;  # 如果参数包含 tor，则启用 Tor 标签
   esac
 done
 
@@ -159,8 +168,14 @@ if [ -n "$OUTPUT_PATH" ]; then
     OUTPUT_FILE="${OUTPUT_PATH%/}/sing-box"
 fi
 
+# 设置构建标签
+TAGS="with_quic with_grpc with_dhcp with_wireguard with_ech with_utls with_reality_server with_acme with_clash_api with_v2ray_api with_gvisor"
+if [ "$WITH_TOR" = true ]; then
+    TAGS="$TAGS with_embedded_tor"
+fi
+
 GOOS=${GOOS} GOARCH=${ARCH} go build -ldflags "-X 'github.com/sagernet/sing-box/constant.Version=${LATEST_VERSION}'" \
-    -tags "with_quic with_grpc with_dhcp with_wireguard with_ech with_utls with_reality_server with_acme with_clash_api with_v2ray_api with_gvisor" \
+    -tags "$TAGS" \
     -o "$OUTPUT_FILE" ./cmd/sing-box
 
 chmod +x "$OUTPUT_FILE"
