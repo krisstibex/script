@@ -17,6 +17,11 @@ else
 fi
 
 term_width=$(tput cols)
+center_text() {
+    local text="$1"
+    local padding=$(( (term_width - ${#text}) / 2 ))
+    printf "%*s\n" $((padding + ${#text})) "$text"
+}
 ascii_art=(
 "      _                   _               "
 "  ___(_)_ __   __ _      | |__   _____  __"
@@ -83,18 +88,18 @@ if [ -z "$REPO_URL" ]; then
   echo "$border"
   echo "$border"
   for line in "${ascii_art[@]}"; do
-    padding=$(( (term_width - ${#line}) / 2 ))
-    printf "%*s\n" $((padding + ${#line})) "$line"
+    center_text "$line"
   done
   echo "$border"
   echo "$border"
-  echo "请选择要使用的仓库和分支:"
-  echo "1) sing-box 稳定版 (https://github.com/SagerNet/sing-box, 分支: main)"
-  echo "2) sing-box beta版 (https://github.com/SagerNet/sing-box, 分支: dev-next)"
-  echo "3) sing-box 下游分支 (PuerNya) (https://github.com/PuerNya/sing-box, 分支: building)"
-  echo "4) sing-box 下游分支 (qjebbs) (https://github.com/qjebbs/sing-box, 分支: main)"
-  echo "5) sing-box 下游分支 (rnetx) (https://github.com/rnetx/sing-box, 分支: dev-next)"
-  read -p "请输入选项 (1-5): " choice
+  center_text "请选择要使用的仓库和分支:"
+  center_text "1) sing-box 稳定版 (https://github.com/SagerNet/sing-box, 分支: main)"
+  center_text "2) sing-box beta版 (https://github.com/SagerNet/sing-box, 分支: dev-next)"
+  center_text "3) sing-box 下游分支 (PuerNya) (https://github.com/PuerNya/sing-box, 分支: building)"
+  center_text "4) sing-box 下游分支 (qjebbs) (https://github.com/qjebbs/sing-box, 分支: main)"
+  center_text "5) sing-box 下游分支 (rnetx) (https://github.com/rnetx/sing-box, 分支: dev-next)"
+  center_text "请输入选项 (1-5): "
+  read -p "$(printf "%*s" $(( (term_width + 22) / 2 )) "")" choice
 
   case $choice in
     1) 
