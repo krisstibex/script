@@ -25,6 +25,11 @@ apt update && apt -y install curl wget tar socat net-tools jq git openssl uuid-r
 ```
 wget -N -O /root/singbox.sh https://github.com/krisstibex/script/raw/main/sing-box/Install.sh && chmod +x /root/singbox.sh && ln -sf /root/singbox.sh /usr/local/bin/singbox && bash /root/singbox.sh
 ```
+### sing-box-install
+- sing-box编译安装一条龙
+```
+bash <(curl -fsSL https://s.mikutabs.eu.org/6ZO3)
+```
 ### Tor
 - 一键搭建obfs4网桥
 ```
