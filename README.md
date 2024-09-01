@@ -17,11 +17,11 @@ bash <(curl -fsSL https://s.mikutabs.eu.org/snell)
 ```
 ### sing-box
 - 一键安装sing-box
-- 依赖
+1. 依赖
 ```
 apt update && apt -y install curl wget tar socat net-tools jq git openssl uuid-runtime build-essential zlib1g-dev libssl-dev libevent-dev dnsutils cron
 ```
-- 脚本
+2. 脚本
 ```
 wget -N -O /root/singbox.sh https://github.com/krisstibex/script/raw/main/sing-box/Install.sh && chmod +x /root/singbox.sh && ln -sf /root/singbox.sh /usr/local/bin/singbox && bash /root/singbox.sh
 ```
