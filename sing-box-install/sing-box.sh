@@ -58,6 +58,7 @@ for arg in "$@"; do
   case $arg in
     tor) WITH_TOR=true;;
     go) INSTALL_NEW_GO=true;;
+    help) echo "Usage: $0 [-o output_path] [-a repo name] [-d goos] [-v go version]" >&2; exit 1;;
   esac
 done
 
