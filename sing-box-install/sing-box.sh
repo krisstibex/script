@@ -16,6 +16,17 @@ else
     script_name="$0"
 fi
 
+term_width=$(tput cols)
+ascii_art=(
+"      _                   _               "
+"  ___(_)_ __   __ _      | |__   _____  __"
+" / __| | '_ \\ / _\` |_____| '_ \\ / _ \\ \\/ /"
+" \\__ \\ | | | | (_| |_____| |_) | (_) >  < "
+" |___/_|_| |_|\\__, |     |_.__/ \\___/_/\\_\\"
+"              |___/                       "
+)
+border=$(printf '%*s' "$term_width" '' | tr ' ' '#')
+
 while getopts "o:a:d:v:" opt; do
   case $opt in
     o) OUTPUT_PATH="$OPTARG";;
@@ -69,9 +80,14 @@ for arg in "$@"; do
 done
 
 if [ -z "$REPO_URL" ]; then
-  echo "################################################"
-  echo -e "      _                   _                \n  ___(_)_ __   __ _      | |__   _____  __ \n / __| | '_ \\ / _\` |_____| '_ \\ / _ \\ \\/ / \n \\__ \\ | | | | (_| |_____| |_) | (_) >  <  \n |___/_|_| |_|\\__, |     |_.__/ \\___/_/\\_\\ \n              |___/                       "
-  echo "################################################"
+  echo "$border"
+  echo "$border"
+  for line in "${ascii_art[@]}"; do
+    padding=$(( (term_width - ${#line}) / 2 ))
+    printf "%*s\n" $((padding + ${#line})) "$line"
+  done
+  echo "$border"
+  echo "$border"
   echo "请选择要使用的仓库和分支:"
   echo "1) sing-box 稳定版 (https://github.com/SagerNet/sing-box, 分支: main)"
   echo "2) sing-box beta版 (https://github.com/SagerNet/sing-box, 分支: dev-next)"
