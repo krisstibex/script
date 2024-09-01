@@ -8,8 +8,9 @@ REPO_DESC=""
 GOOS="linux"
 WITH_TOR=false
 INSTALL_NEW_GO=false
+GO_VERSION="1.23.0"
 
-while getopts "o:a:d:" opt; do
+while getopts "o:a:d:v:" opt; do
   case $opt in
     o) OUTPUT_PATH="$OPTARG";;
     a) 
@@ -46,7 +47,8 @@ while getopts "o:a:d:" opt; do
       esac
       ;;
     d) GOOS="$OPTARG";;
-    *) echo "Usage: $0 [-o output_path] [-a option] [-d goos]" >&2; exit 1;;
+    v) GO_VERSION="$OPTARG";;
+    *) echo "Usage: $0 [-o output_path] [-a repo name] [-d goos] [-v go version]" >&2; exit 1;;
   esac
 done
 
@@ -126,7 +128,6 @@ if command -v go >/dev/null 2>&1; then
 else
     if [ "$INSTALL_NEW_GO" = true ]; then
         echo "Go 未安装 正在安装..."
-        GO_VERSION="1.23.0"
         wget -q "https://go.dev/dl/go${GO_VERSION}.linux-${ARCH}.tar.gz" -O go.tar.gz
         sudo tar -C /usr/local -xzf go.tar.gz
         CURRENT_SHELL=$(basename "$SHELL")
