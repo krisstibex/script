@@ -10,6 +10,12 @@ WITH_TOR=false
 INSTALL_NEW_GO=false
 GO_VERSION="1.23.0"
 
+if [[ $0 == "/proc/"* ]]; then
+    script_name="sing-box.sh"
+else
+    script_name="$0"
+fi
+
 while getopts "o:a:d:v:" opt; do
   case $opt in
     o) OUTPUT_PATH="$OPTARG";;
@@ -48,7 +54,7 @@ while getopts "o:a:d:v:" opt; do
       ;;
     d) GOOS="$OPTARG";;
     v) GO_VERSION="$OPTARG";;
-    *) echo "Usage: $0 [-o output_path] [-a repo name] [-d goos] [-v go version]" >&2; exit 1;;
+    *) echo "Usage: $script_name [-o output_path] [-a repo name] [-d go os] [-v go version]" >&2; exit 1;;
   esac
 done
 
@@ -58,7 +64,7 @@ for arg in "$@"; do
   case $arg in
     tor) WITH_TOR=true;;
     go) INSTALL_NEW_GO=true;;
-    help) echo "Usage: $0 [-o output_path] [-a repo name] [-d goos] [-v go version]" >&2; exit 1;;
+    help) echo "Usage: $script_name [-o output_path] [-a repo name] [-d go os] [-v go version]" >&2; exit 1;;
   esac
 done
 
