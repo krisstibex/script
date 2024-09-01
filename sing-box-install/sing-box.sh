@@ -22,6 +22,10 @@ center_text() {
     local padding=$(( (term_width - ${#text}) / 2 ))
     printf "%*s\n" $((padding + ${#text})) "$text"
 }
+iecho() {
+    local text="$1"
+    printf "%*s%s\n" "$padding" "" "$text"
+}
 ascii_art=(
 "      _                   _               "
 "  ___(_)_ __   __ _      | |__   _____  __"
@@ -137,13 +141,13 @@ if [ -z "$REPO_URL" ]; then
       REPO_DESC="sing-box 下游分支 (rnetx)"
       ;;
     *) 
-      echo "无效选项."
+      iecho "无效选项."
       exit 1
       ;;
   esac
 fi
 
-echo "正在使用仓库: $REPO_URL, 分支: $BRANCH ($REPO_DESC), 构建目标平台: $GOOS"
+iecho "正在使用仓库: $REPO_URL, 分支: $BRANCH ($REPO_DESC), 构建目标平台: $GOOS"
 
 ARCH_RAW=$(uname -m)
 LATEST_VERSION=$(curl -s https://api.github.com/repos/SagerNet/sing-box/releases \
@@ -163,11 +167,11 @@ case "${ARCH_RAW}" in
 esac
 
 if command -v go >/dev/null 2>&1; then
-    echo "Go 已安装"
+    iecho "Go 已安装"
     go version
 else
     if [ "$INSTALL_NEW_GO" = true ]; then
-        echo "Go 未安装 正在安装..."
+        iecho "Go 未安装 正在安装..."
         wget -q "https://go.dev/dl/go${GO_VERSION}.linux-${ARCH}.tar.gz" -O go.tar.gz
         sudo tar -C /usr/local -xzf go.tar.gz
         CURRENT_SHELL=$(basename "$SHELL")
@@ -198,7 +202,7 @@ else
         source "$CONFIG_FILE"
         rm -f "go.tar.gz"
     else
-        echo "Go 未安装 使用 apt 安装..."
+        iecho "Go 未安装 使用 apt 安装..."
         sudo apt update
         sudo apt install -y golang
     fi
