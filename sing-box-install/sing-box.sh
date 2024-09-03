@@ -209,6 +209,7 @@ else
 fi
 
 apt install git -y
+sudo rm -rf /tmp/sing-box
 git clone "$REPO_URL" /tmp/sing-box && cd /tmp/sing-box
 git checkout "$BRANCH"
 
