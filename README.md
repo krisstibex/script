@@ -8,7 +8,7 @@
 ### sub-store-manager
 - 安装node版的sub-store
 ```
-bash <(curl -fsSL https://github.com/krisstibex/script/raw/main/sub-store-manager/sub-store-manager.sh)
+bash <(curl -fsSL https://s.mikutabs.eu.org/QZi8)
 ```
 ### snell
 - 一键安装snell+shadowtls
