@@ -6,14 +6,20 @@ export default {
 
 async function handleRequest(request, env) {
   const TARGET_DOMAIN = env.TARGET_DOMAIN;
-  const SPECIFIC_PATH = env.SPECIFIC_PATH;
-  const REDIRECT_OPTION = env.REDIRECT_OPTION;
+  const SPECIFIC_PATH = env.SPECIFIC_PATH.endsWith('/') ? env.SPECIFIC_PATH : env.SPECIFIC_PATH + '/'; // 确保 SPECIFIC_PATH 以 '/' 结尾
   const REDIRECT_DOMAIN = env.REDIRECT_DOMAIN;
   const CUSTOM_404_PAGE = env.CUSTOM_404_PAGE;
   const REMOTE_404_URL = env.REMOTE_404_URL;
 
   const url = new URL(request.url);
 
+  // 处理鉴权路径等价性：/x 和 /x/ 等价
+  const trimmedSpecificPath = SPECIFIC_PATH.slice(0, -1); // 去掉末尾的 '/'
+  if (url.pathname === trimmedSpecificPath) {  // 如果请求路径是 /x（没有斜杠）
+    return Response.redirect(url.origin + SPECIFIC_PATH, 302); // 重定向到 /x/
+  }
+
+  // 检查路径是否以特定路径开头
   if (url.pathname.startsWith(SPECIFIC_PATH)) {
     // 处理目标路径并确保有前导斜杠
     const proxiedPath = url.pathname.slice(SPECIFIC_PATH.length);
@@ -55,30 +61,31 @@ async function handleRequest(request, env) {
       });
     }
   } else {
-    if (REDIRECT_OPTION) {
-      // 解析REDIRECT_DOMAIN并跳转，不附带路径
-      const redirectUrl = new URL(REDIRECT_DOMAIN, url);
+    // 配置优先级处理
+    if (REDIRECT_DOMAIN) {
+      // 如果设置了重定向域名，则跳转到指定域名
+      const redirectUrl = new URL(REDIRECT_DOMAIN.includes('http') ? REDIRECT_DOMAIN : `https://${REDIRECT_DOMAIN}`);
       return Response.redirect(redirectUrl.toString(), 302);
-    } else {
-      if (CUSTOM_404_PAGE) {
-        return new Response(CUSTOM_404_PAGE, {
+    } else if (REMOTE_404_URL) {
+      // 如果设置了404页面的远程URL，则获取其内容并返回
+      try {
+        const remoteResponse = await fetch(REMOTE_404_URL);
+        const remote404Content = await remoteResponse.text();
+        return new Response(remote404Content, {
           status: 404,
           headers: { "Content-Type": "text/html" },
         });
-      } else if (REMOTE_404_URL) {
-        try {
-          const remoteResponse = await fetch(REMOTE_404_URL);
-          const remote404Content = await remoteResponse.text();
-          return new Response(remote404Content, {
-            status: 404,
-            headers: { "Content-Type": "text/html" },
-          });
-        } catch (error) {
-          return new Response('404 Not Found', { status: 404 });
-        }
-      } else {
+      } catch (error) {
         return new Response('404 Not Found', { status: 404 });
       }
+    } else if (CUSTOM_404_PAGE) {
+      // 如果设置了404页面的内容，直接返回
+      return new Response(CUSTOM_404_PAGE, {
+        status: 404,
+        headers: { "Content-Type": "text/html" },
+      });
+    } else {
+      return new Response('404 Not Found', { status: 404 });
     }
   }
 }
