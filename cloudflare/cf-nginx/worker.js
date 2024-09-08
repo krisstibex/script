@@ -17,7 +17,9 @@ async function handleRequest(request, env) {
 
   if (url.pathname.startsWith(SPECIFIC_PATH)) {
     const proxiedPath = url.pathname.slice(SPECIFIC_PATH.length);
-    const targetUrl = `${TARGET_PROTOCOL}://${TARGET_DOMAIN}${proxiedPath}${url.search}`;
+    const fixedPath = proxiedPath.startsWith('/') ? proxiedPath : `/${proxiedPath}`;
+
+    const targetUrl = `${TARGET_PROTOCOL}://${TARGET_DOMAIN}${fixedPath}${url.search}`;
     const modifiedRequest = new Request(targetUrl, {
       method: request.method,
       headers: request.headers,
