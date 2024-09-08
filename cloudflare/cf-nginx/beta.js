@@ -7,7 +7,6 @@ export default {
 async function handleRequest(request, env) {
   const TARGET_DOMAIN = env.TARGET_DOMAIN;
   const SPECIFIC_PATH = env.SPECIFIC_PATH;
-  const TARGET_PROTOCOL = env.TARGET_PROTOCOL || 'https';
   const REDIRECT_OPTION = env.REDIRECT_OPTION;
   const REDIRECT_DOMAIN = env.REDIRECT_DOMAIN;
   const CUSTOM_404_PAGE = env.CUSTOM_404_PAGE;
@@ -16,11 +15,15 @@ async function handleRequest(request, env) {
   const url = new URL(request.url);
 
   if (url.pathname.startsWith(SPECIFIC_PATH)) {
-    // 修正：处理路径时，确保目标路径有前导斜杠
+    // 处理目标路径并确保有前导斜杠
     const proxiedPath = url.pathname.slice(SPECIFIC_PATH.length);
     const fixedPath = proxiedPath.startsWith('/') ? proxiedPath : `/${proxiedPath}`;
 
-    const targetUrl = `${TARGET_PROTOCOL}://${TARGET_DOMAIN}${fixedPath}${url.search}`;
+    // 自动识别协议头：检查 TARGET_DOMAIN 是否包含协议头
+    const targetUrl = (TARGET_DOMAIN.startsWith('http://') || TARGET_DOMAIN.startsWith('https://'))
+      ? `${TARGET_DOMAIN}${fixedPath}${url.search}`  // 如果包含协议头，直接使用
+      : `https://${TARGET_DOMAIN}${fixedPath}${url.search}`;  // 如果不包含协议头，默认使用 https://
+
     const modifiedRequest = new Request(targetUrl, {
       method: request.method,
       headers: request.headers,
@@ -39,7 +42,7 @@ async function handleRequest(request, env) {
       let modifiedHtml = await response.text();
 
       // 修改：将相对路径转换为绝对路径，以适应代理后的目标域名
-      modifiedHtml = modifiedHtml.replace(/(href|src)="\/([^"]*)"/g, `$1="${TARGET_PROTOCOL}://${TARGET_DOMAIN}/$2"`);
+      modifiedHtml = modifiedHtml.replace(/(href|src)="\/([^"]*)"/g, `$1="${TARGET_DOMAIN.startsWith('http') ? TARGET_DOMAIN : 'https://' + TARGET_DOMAIN}/$2"`);
 
       return new Response(modifiedHtml, {
         status: response.status,
@@ -53,8 +56,8 @@ async function handleRequest(request, env) {
     }
   } else {
     if (REDIRECT_OPTION) {
-      const redirectUrl = new URL(request.url);
-      redirectUrl.hostname = REDIRECT_DOMAIN;
+      // 解析REDIRECT_DOMAIN并跳转，不附带路径
+      const redirectUrl = new URL(REDIRECT_DOMAIN, url);
       return Response.redirect(redirectUrl.toString(), 302);
     } else {
       if (CUSTOM_404_PAGE) {
