@@ -272,7 +272,11 @@ EOF
     systemctl daemon-reload
     systemctl enable snell
     systemctl restart snell
-    echo "net.ipv4.tcp_fastopen = 3" >> /etc/sysctl.conf
+    if grep -q "^net.ipv4.tcp_fastopen" /etc/sysctl.conf; then
+        sed -i "s/^net.ipv4.tcp_fastopen.*/net.ipv4.tcp_fastopen = 3/" /etc/sysctl.conf
+    else
+        echo "net.ipv4.tcp_fastopen = 3" >> /etc/sysctl.conf
+    fi
     sysctl -p
 }
 
