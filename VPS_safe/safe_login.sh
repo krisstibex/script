@@ -22,8 +22,8 @@ read -p "请输入新用户名： " new_user
 if id "$new_user" &>/dev/null; then
   echo "用户 $new_user 已存在。"
 else
-  sudo adduser $new_user
-  echo "用户 $new_user 创建成功。"
+  sudo adduser --disabled-password --gecos "" $new_user
+  echo "用户 $new_user 创建成功（无需密码登录）。"
 fi
 sudo usermod -aG sudo $new_user
 sudo sed -i "s/PermitRootLogin yes/PermitRootLogin no/" /etc/ssh/sshd_config
@@ -58,9 +58,14 @@ sudo systemctl restart sshd
 echo "SSH 服务已重启。"
 
 # 5. 获取服务器公网 IP
-server_ip=$(curl -s ip.sb)
+echo "正在获取服务器的公网 IP..."
+server_ip=$(curl -4 -s --max-time 5 ip.sb)
 if [[ -z "$server_ip" ]]; then
-  server_ip="无法获取 IP，请手动检查"
+  echo "无法通过 IPv4 获取 IP，尝试 IPv6..."
+  server_ip=$(curl -6 -s ip.sb)
+  if [[ -z "$server_ip" ]]; then
+    server_ip="无法获取 IP，请手动检查"
+  fi
 fi
 
 # 6. 打印连接信息
