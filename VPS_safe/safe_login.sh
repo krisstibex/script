@@ -12,7 +12,14 @@ elif ! [[ $new_port =~ ^[0-9]+$ ]]; then
   echo "端口号无效，请输入一个有效的数字！"
   exit 1
 fi
-sudo sed -i "s/#Port 22/Port $new_port/" /etc/ssh/sshd_config
+# 替换现有的 Port 设置（假设新端口是 $new_port）
+sudo sed -i "s/^Port .*/Port $new_port/" /etc/ssh/sshd_config
+
+# 如果没有找到 Port 行，添加新的 Port 行（在文件末尾添加）
+if ! grep -q "^Port" /etc/ssh/sshd_config; then
+    echo "Port $new_port" | sudo tee -a /etc/ssh/sshd_config
+fi
+
 echo "SSH 端口已修改为 $new_port"
 echo "------------------------------------"
 
