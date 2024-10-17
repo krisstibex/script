@@ -47,9 +47,16 @@ if [ ! -d "$rsa_dir" ]; then
   sudo chown $new_user:$new_user "$rsa_dir"
   sudo chmod 700 "$rsa_dir"
 fi
+
+# 生成密钥对
 sudo -u $new_user ssh-keygen -t rsa -b 4096 -f "$rsa_path" -N "" -q
 sudo chmod 600 "$rsa_path"  # 设置私钥权限
 
+# 将公钥添加到 authorized_keys
+sudo -u $new_user cat "$rsa_path.pub" >> "$rsa_dir/authorized_keys"
+sudo chmod 600 "$rsa_dir/authorized_keys"
+
+# 更新 sshd 配置以启用密钥验证并禁用密码验证
 sudo sed -i "s/#PasswordAuthentication yes/PasswordAuthentication no/" /etc/ssh/sshd_config
 sudo sed -i "s/#PubkeyAuthentication yes/PubkeyAuthentication yes/" /etc/ssh/sshd_config
 echo "RSA 密钥已生成，密码验证已禁用，密钥验证已启用。"
@@ -59,7 +66,6 @@ echo "------------------------------------"
 echo "下面是生成的 RSA 私钥，请妥善保存："
 sudo cat "$rsa_path"
 echo "公钥已存储在 $rsa_dir/id_rsa.pub"
-echo "您可以将公钥添加到其他服务器的 ~/.ssh/authorized_keys 中以便使用密钥登录。"
 echo "------------------------------------"
 
 # 4. 重启 SSH 服务
