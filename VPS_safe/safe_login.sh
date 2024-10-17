@@ -12,10 +12,11 @@ elif ! [[ $new_port =~ ^[0-9]+$ ]]; then
   echo "端口号无效，请输入一个有效的数字！"
   exit 1
 fi
-# 替换现有的 Port 设置（假设新端口是 $new_port）
+
+# 替换现有的 Port 设置
 sudo sed -i "s/^Port .*/Port $new_port/" /etc/ssh/sshd_config
 
-# 如果没有找到 Port 行，添加新的 Port 行（在文件末尾添加）
+# 如果没有找到 Port 行，添加新的 Port 行
 if ! grep -q "^Port" /etc/ssh/sshd_config; then
     echo "Port $new_port" | sudo tee -a /etc/ssh/sshd_config
 fi
@@ -47,6 +48,8 @@ if [ ! -d "$rsa_dir" ]; then
   sudo chmod 700 "$rsa_dir"
 fi
 sudo -u $new_user ssh-keygen -t rsa -b 4096 -f "$rsa_path" -N "" -q
+sudo chmod 600 "$rsa_path"  # 设置私钥权限
+
 sudo sed -i "s/#PasswordAuthentication yes/PasswordAuthentication no/" /etc/ssh/sshd_config
 sudo sed -i "s/#PubkeyAuthentication yes/PubkeyAuthentication yes/" /etc/ssh/sshd_config
 echo "RSA 密钥已生成，密码验证已禁用，密钥验证已启用。"
@@ -61,7 +64,8 @@ echo "------------------------------------"
 
 # 4. 重启 SSH 服务
 echo "正在重启 SSH 服务以应用更改..."
-sudo service ssh restart && sudo service ssh status
+sudo systemctl restart ssh
+sudo systemctl status ssh
 echo "SSH 服务已重启。"
 
 # 5. 获取服务器公网 IP
