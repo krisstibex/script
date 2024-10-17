@@ -54,7 +54,7 @@ echo "------------------------------------"
 
 # 4. 重启 SSH 服务
 echo "正在重启 SSH 服务以应用更改..."
-sudo service ssh restart && sudo service sshd restart
+sudo service ssh restart && sudo service ssh status
 echo "SSH 服务已重启。"
 
 # 5. 获取服务器公网 IP
