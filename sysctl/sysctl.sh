@@ -2,7 +2,7 @@
 
 # 一键优化 sysctl 设置并启用 BBR 和 CAKE
 
-cat <<EOF >> /etc/sysctl.conf
+cat <<EOF > /etc/sysctl.conf
 
 # 网络性能优化
 net.core.rmem_max = 16777216
