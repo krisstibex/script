@@ -35,6 +35,6 @@ kernel.shmall = 4294967296
 EOF
 
 # 启用 CAKE 队列管理
-tc qdisc replace dev eth0 root cake bandwidth 100mbit besteffort
+tc qdisc replace dev eth0 root cake bandwidth 1gbit besteffort
 
 sysctl -p
