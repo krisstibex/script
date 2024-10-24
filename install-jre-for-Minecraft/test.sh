@@ -95,6 +95,5 @@ for version in "${!java_versions[@]}"; do
     fi
 done
 
-echo "JAVA 安装完成"
+echo "done."
 ls -a "$INSTALL_DIR"
-echo "您可以使用 /usr/lib/jvm/${PACKAGE_TYPE}17/bin/java -jar server.jar 的方式启动您的服务器"
