@@ -4,11 +4,16 @@ INSTALL_DIR="/usr/lib/jvm"
 mkdir -p "$INSTALL_DIR"
 cd "$INSTALL_DIR" || { echo "无法切换到 $INSTALL_DIR 目录"; exit 1; }
 
+# 预定义每个 Java 版本的基础下载链接
+java8="zulu8.72.0.17-ca-jdk8.0.382"
+java11="zulu11.64.19-ca-jdk11.0.20"
+java17="zulu17.44.15-ca-jdk17.0.8"
+java21="zulu21.38.21-ca-jdk21.0.5"
+
 # 检测系统架构和 C 库类型
 ARCH=$(uname -m)
 LIBC_TYPE=""
 
-# 检测 C 库类型
 if ldd --version 2>&1 | grep -q musl; then
     LIBC_TYPE="musl"
 else
@@ -16,50 +21,65 @@ else
 fi
 
 # 设置架构名称
-if [[ "$ARCH" == "x86_64" ]]; then
-    ARCH_NAME="x64"
-elif [[ "$ARCH" == "aarch64" ]]; then
-    ARCH_NAME="aarch64"
-else
-    echo "不支持的架构: $ARCH"
-    exit 1
-fi
+case "$ARCH" in
+    x86_64)
+        ARCH_NAME="x64"
+        ;;
+    aarch64)
+        ARCH_NAME="aarch64"
+        ;;
+    i686)
+        ARCH_NAME="i686"
+        ;;
+    *)
+        echo "不支持的架构: $ARCH"
+        exit 1
+        ;;
+esac
 
-# 处理参数
-PACKAGE_TYPE="${1:-jre}" # 默认为 jre
-VERSION_PARAM="$2" # -v
-VERSIONS="${3:-@}" # 默认安装最新版本
+# 处理参数，默认行为为 jdk 和最新版
+PACKAGE_TYPE="jdk"
+VERSION_PARAM="@"
 
-if [[ "$PACKAGE_TYPE" != "jdk" && "$PACKAGE_TYPE" != "jre" ]]; then
-    echo "用法: bash script.sh [jdk|jre] -v <8,11,17,21|@>"
-    exit 1
-fi
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        jdk|jre)
+            PACKAGE_TYPE="$1"
+            shift
+            ;;
+        -v)
+            VERSION_PARAM="$2"
+            shift 2
+            ;;
+        *)
+            echo "用法: bash script.sh [jdk|jre] -v <8,11,17,21|@>"
+            exit 1
+            ;;
+    esac
+done
 
-if [[ "$VERSION_PARAM" != "-v" ]]; then
-    echo "请使用 -v 指定版本号"
-    exit 1
-fi
-
-IFS=',' read -ra VERSION_ARRAY <<< "$VERSIONS"
+IFS=',' read -ra VERSION_ARRAY <<< "$VERSION_PARAM"
 
 declare -A java_versions
 for version in "${VERSION_ARRAY[@]}"; do
-    # 构建版本模式，如果版本为 @ 则选择最新版本
-    if [[ "$version" == "@" ]]; then
-        version_pattern="${PACKAGE_TYPE}\d+\.\d+\.\d+-ca-${PACKAGE_TYPE}\d+\.\d+\.\d+-linux_${ARCH_NAME}\.tar\.gz"
-        [[ "$LIBC_TYPE" == "musl" ]] && version_pattern="${PACKAGE_TYPE}\d+\.\d+\.\d+-ca-${PACKAGE_TYPE}\d+\.\d+\.\d+-linux_musl_${ARCH_NAME}\.tar\.gz"
+    # 根据版本号设置下载链接基础部分
+    case $version in
+        8) base_url="$java8";;
+        11) base_url="$java11";;
+        17) base_url="$java17";;
+        21) base_url="$java21";;
+        @) base_url="$java21";; # 默认最新为 21
+        *) echo "不支持的版本: $version"; continue;;
+    esac
+
+    # 根据 C 库类型和架构设置下载链接的完整路径
+    if [[ "$LIBC_TYPE" == "musl" ]]; then
+        download_url="https://cdn.azul.com/zulu/bin/${base_url}-linux_musl_${ARCH_NAME}.tar.gz"
     else
-        version_pattern="${PACKAGE_TYPE}${version}\.\d+\.\d+-ca-${PACKAGE_TYPE}${version}\.\d+\.\d+-linux_${ARCH_NAME}\.tar\.gz"
-        [[ "$LIBC_TYPE" == "musl" ]] && version_pattern="${PACKAGE_TYPE}${version}\.\d+\.\d+-ca-${PACKAGE_TYPE}${version}\.\d+\.\d+-linux_musl_${ARCH_NAME}\.tar\.gz"
+        download_url="https://cdn.azul.com/zulu/bin/${base_url}-linux_${ARCH_NAME}.tar.gz"
     fi
 
-    # 查找匹配的版本
-    version_number=$(curl -s "https://cdn.azul.com/zulu/bin/" | grep -oP "$version_pattern" | head -n 1)
-    if [[ -n "$version_number" ]]; then
-        java_versions[$version]="https://cdn.azul.com/zulu/bin/$version_number"
-    else
-        echo "无法找到 ${PACKAGE_TYPE}${version} 的匹配版本"
-    fi
+    java_versions[$version]="$download_url"
 done
 
 # 下载并安装指定版本
@@ -70,6 +90,8 @@ for version in "${!java_versions[@]}"; do
         rm -f "${PACKAGE_TYPE}${version}.tar.gz" && \
         mv "${PACKAGE_TYPE}${version}.*" "${PACKAGE_TYPE}${version}"
         echo "${PACKAGE_TYPE}${version} 已安装"
+    else
+        echo "无法找到 ${PACKAGE_TYPE}${version} 的下载链接"
     fi
 done
 
